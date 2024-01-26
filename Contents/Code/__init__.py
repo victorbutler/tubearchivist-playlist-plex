@@ -207,8 +207,16 @@ def get_ta_video_metadata(ytid):
       metadata['processed_date'] = Datetime.ParseDate(vid_response['data']['published'])
       video_refresh = Datetime.ParseDate(vid_response['data']['vid_last_refresh'])
       metadata['refresh_date'] = video_refresh.strftime("%Y%m%d")
+      
       metadata['season'] = metadata['processed_date'].year
       metadata['episode'] = metadata['processed_date'].strftime("%Y%m%d")
+      if len(vid_response['data']['playlist']) > 0:
+        playlist_response = get_ta_metadata(vid_response['data']['playlist'][0])
+        if playlist_response:
+          metadata['season'] = playlist_response['data']['playlist_name']
+          filtered_arr = [p for p in playlist_response['data']['playlist_entries'] if p.youtube_id == ytid]
+          metadata['episode'] = filtered_arr[0]['idx'] + 1
+
       metadata['description'] = vid_response['data']['description']
       metadata['thumb_url'] = vid_response['data']['vid_thumb_url']
       metadata['type'] = vid_response['data']['vid_type']
@@ -346,12 +354,12 @@ def GetLibraryRootPath(dir):
     Log.Info(u'[X] Library access denied')
     filename = os.path.join(CachePath, '_Logs', '_root_.scanner.log')
     if os.path.isfile(filename):
-      Log.Info(u'[_] TubeArchivist root scanner log file present: "{}"'.format(filename))
+      Log.Info(u'[_] TubeArchivist Playlist root scanner log file present: "{}"'.format(filename))
       line = Core.storage.load(filename)  #with open(filename, 'rb') as file:  line=file.read()
       for root in [os.sep.join(dir.split(os.sep)[0:x+2]) for x in range(dir.count(os.sep)-1, -1, -1)]:
         if "root: '{}'".format(root) in line:  path = os.path.relpath(dir, root).rstrip('.');  break  #Log.Info(u'[!] root not found: "{}"'.format(root))
       else: path, root = '_unknown_folder', ''
-    else:  Log.Info(u'[!] TubeArchivist root scanner log file missing: "{}"'.format(filename))
+    else:  Log.Info(u'[!] TubeArchivist Playlist root scanner log file missing: "{}"'.format(filename))
   return library, root, path
 
 
@@ -499,4 +507,4 @@ def Start():
     #HTTP.CacheTime                  = CACHE_1MONTH
     HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36' # Generisize further
     HTTP.Headers['Accept-Language'] = 'en-us'
-    Log("Starting up TubeArchivist Agent...")
+    Log("Starting up TubeArchivist Playlist Agent...")

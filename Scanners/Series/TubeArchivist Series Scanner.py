@@ -28,7 +28,7 @@ Handler           = None
 PLEX_ROOT         = ""
 PLEX_LIBRARY      = {}
 PLEX_LIBRARY_URL  = "http://localhost:32400/library/sections/" # Allow to get the library name to get a log per library https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token
-SOURCE            = "TubeArchivist Scanner"
+SOURCE            = "TubeArchivist Playlist Scanner"
 TA_CONFIG         = None
 LOG_RETENTION     = 5
 
@@ -70,7 +70,7 @@ def setup():
       Log.setLevel(logging.DEBUG)
       set_logging()
 
-      Log.info(u"TubeArchivist scanner started: {}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f")))
+      Log.info(u"TubeArchivist Playlist scanner started: {}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f")))
       # try:
       #   library_xml = etree.fromstring(read_url(Request(PLEX_LIBRARY_URL, headers={"X-Plex-Token": read_file(os.path.join(PLEX_ROOT, "X-Plex-Token.id")).strip() if os.path.isfile(os.path.join(PLEX_ROOT, "X-Plex-Token.id")) else Dict(os.environ, 'PLEXTOKEN')})))
       #   for directory in library_xml.iterchildren("Directory"):
@@ -259,8 +259,16 @@ def get_ta_video_metadata(ytid):
         metadata['processed_date'] = datetime.datetime.strptime(vid_response['data']['published'],"%Y-%m-%d")
         video_refresh = datetime.datetime.strptime(vid_response['data']['vid_last_refresh'],"%Y-%m-%d")
       metadata['refresh_date'] = video_refresh.strftime("%Y%m%d")
+
       metadata['season'] = metadata['processed_date'].year
       metadata['episode'] = metadata['processed_date'].strftime("%Y%m%d")
+      if len(vid_response['data']['playlist']) > 0:
+        playlist_response = get_ta_metadata(vid_response['data']['playlist'][0])
+        if playlist_response:
+          metadata['season'] = playlist_response['data']['playlist_name']
+          filtered_arr = [p for p in playlist_response['data']['playlist_entries'] if p.youtube_id == ytid]
+          metadata['episode'] = filtered_arr[0]['idx'] + 1
+
       metadata['description'] = vid_response['data']['description']
       metadata['thumb_url'] = vid_response['data']['vid_thumb_url']
       metadata['type'] = vid_response['data']['vid_type']
