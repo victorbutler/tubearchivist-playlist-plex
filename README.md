@@ -1,6 +1,10 @@
 ![](https://i.imgur.com/rCs6taI.jpg)
 
-# TubeArchivist Plex Integration
+# TubeArchivist Playlist Plex Integration
+
+This is basically the same as the forked, except that if a playlist exists on the video, use that for the season and the position of the video in the playlist list as the episode number.
+
+---
 
 This is a custom set of Scanner and Agent to integrate [TubeArchivist](https://github.com/tubearchivist/tubearchivist) with Plex.
 
